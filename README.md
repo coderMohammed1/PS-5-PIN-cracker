@@ -7,6 +7,10 @@ the codes provided only works for some samsung tves with an api to control them 
 
 ---
 
+# for users:
+
+a more user frindly version has been created. you can find the instructions in the release folder!
+
 # Technical description:
 
 ## Summary

@@ -1,6 +1,6 @@
 ## The .exe usage guide
 
-1- make sure you can control the ps5 using you tv remote and not the ps5 controller.
+1- make sure you can control the ps5 using your tv remote and not the ps5 controller.
   you will need to turn the ps5 on using the tv remote (when you run your tv). if it does not work try again as it may need ypu to do it multiple times.
 
 2- click on the profile you want crack the pin for

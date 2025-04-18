@@ -1,20 +1,33 @@
+# PS5 PIN CRACKER!!!
+
 import base64
 import json
-import logging
 import time
-import websocket
+import socket
+import nmap
+import ipaddress
 import ssl
 from websocket import create_connection
 
 class SamsungTV:
     def __init__(self, host, port=8002, name="ps_remote", token=None):
+        """
+        Initialize the connection to the Samsung TV via WebSocket.
+        - `host`: TV IP address.
+        - `port`: TV port (default 8002).
+        - `name`: Name of the remote control.
+        - `token`: Authentication token (if None, it will be fetched from the TV).
+        """
         try:
+            # Form the WebSocket URI with base64 encoded remote name and optional token
             uri = f"wss://{host}:{port}/api/v2/channels/samsung.remote.control?name={base64.b64encode(name.encode('utf-8')).decode('utf-8')}"
             uri += f"&token={token}"
+
+            # Create the WebSocket connection (ignores SSL verification)
             self.connection = create_connection(uri, sslopt={"cert_reqs": ssl.CERT_NONE})
 
+            # If token is not provided, fetch it from the TV response
             if token is None:
-                # Receive and print the response for debugging
                 response = json.loads(self.connection.recv())
                 token = response["data"]["token"]
 
@@ -22,98 +35,203 @@ class SamsungTV:
                     self.close()
                     raise Exception(f"Unexpected event: {response['event']}")
 
+                # Save token to a file for future use
                 try:
-                    with open("token.txt","w") as token_file:
+                    with open("token.txt", "w") as token_file:
                         token_file.write(token)
                 except:
                     print("Unable to create a file!")
 
             self.token = token
         except:
-            print("Unable to connect! make sure of the tv ip and port.")
-    
-    def _exit_(self, type, value, traceback):
-        self.close()
+            print("Unable to connect! Make sure of the TV IP and port.")
 
     def close(self):
+        """Close the WebSocket connection."""
         if self.connection:
             self.connection.close()
             self.connection = None
 
-    def get_token(self):
-        return self.token
-
     def send_key(self, key):
-        payload = json.dumps({'method': 'ms.remote.control', 'params': {'Cmd': 'Click', 'DataOfCmd': key, 'Option': 'false', 'TypeOfRemote': 'SendRemoteKey'}})
+        """
+        Send a key press to the TV.
+        - `key`: The key to press (e.g., 'KEY_1', 'KEY_ENTER').
+        """
+        payload = json.dumps({
+            'method': 'ms.remote.control',
+            'params': {'Cmd': 'Click', 'DataOfCmd': key, 'Option': 'false', 'TypeOfRemote': 'SendRemoteKey'}
+        })
         self.connection.send(payload)
         time.sleep(0.2)
 
-    # the pin cracker function
-    def crack(self):
-        for i in range(1,10000):
-            num = f"{i:04d}"
-            self.send_key(f"KEY_{num[0]}")
-            self.send_key(f"KEY_{num[1]}")
-            self.send_key(f"KEY_{num[2]}")
+    def crack(self, start=0, end=10000):
+        """
+        Attempt to brute force the PIN by sending key presses.
+        - `start`: The starting PIN value.
+        - `end`: The ending PIN value.
+        """
+        if (start >= 0 and start < 10000) and end <= 10000:
+            for i in range(start, end):
+                num = f"{i:04d}"
+                # Send each digit of the PIN
+                self.send_key(f"KEY_{num[0]}")
+                self.send_key(f"KEY_{num[1]}")
+                self.send_key(f"KEY_{num[2]}")
+                self.send_key(f"KEY_{num[3]}")
+                time.sleep(0.3)
+                self.send_key("KEY_ENTER")
+                print(num)
+        else:
+            print("PIN range is: 0-10000")
 
-            self.send_key(f"KEY_{num[3]}")
-            time.sleep(0.3)
-            self.send_key("KEY_ENTER")
-            print (num)
+def scan():
+    """
+    Scan the local network to find the TV by checking port 8002.
+    Returns the IP address of the TV if found.
+    """
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    deviceIP = s.getsockname()[0]
+    s.close()
+
+    # Create an IPv4 network object for scanning
+    networkIP = ipaddress.IPv4Network(f"{deviceIP}/24", strict=False)
+    print(f"\nScanning network: {networkIP}\n")
+
+    # Perform a port scan on the network
+    try:
+        nm = nmap.PortScanner()
+        results = nm.scan(hosts=str(networkIP), arguments="-sS -p 8002")
+
+        for host, data in results['scan'].items():
+            port_state = data['tcp'][8002]['state']
+            if port_state == 'open':
+                return host  # Return the TV's IP address if port 8002 is open
+        
+        return "None"
+    except Exception as e:
+        print(e)
+        print("Cannot scan the network, please try option number 1")
 
 def main():
-    token=""
-    tv = ""
-
-    menue = "1-Enter your tv information\n2-Start bruteforcing\n3-Instruction page\n4-Exit"
-    print(menue)
+    token = ""
+    tv = None
+    ip = ""
+    port = -2
+    menu = """
+    ▷ PIN BRUTEFORCER ▷
+    =====================
+    1- Enter your TV information
+    2- Start brute-forcing
+    3- Instruction page
+    4- Attempt to automatically retrieve TV information!
+    5- Specify password range
+    6- To exit
+    """
+    print(menu)
 
     try:
-        ch = int(input("Enter you option:"))
+        ch = int(input("Enter your option: "))
     except:
         print("Invalid option!")
 
-    while(ch != 4):
-        # the main menue
-
+    while ch != 6:
+        # Main menu loop
         if ch == 1:
             token = ""
-            ip = input("pleas Enter you tv ip:")
-            port = int(input("the tv port (try 8002 as it is the default):"))
+            ip = input("Please enter your TV IP: ")
+            port = int(input("Enter the TV port (try 8002 as it is the default): "))
 
+            # Try to read the token from the file
             try:
-                with open("token.txt","r") as token_file:
+                with open("token.txt", "r") as token_file:
                     token = token_file.read()
             except:
-                print("click allow when prompted!")
+                print("Click allow when prompted!")
 
             if len(token) == 0:
-                tv = SamsungTV(ip, token=None,port=port)
+                tv = SamsungTV(ip, token=None, port=port)
             else:
-                tv = SamsungTV(ip, token=token,port=port)
+                tv = SamsungTV(ip, token=token, port=port)
+
+            tv.close()
+
         elif ch == 2:
-            if tv != "":
-                print("pleas point click on the profile you want to crack!")
-                print("will start in 5 seconeds...")
+            if tv != "": 
+                tv = SamsungTV(ip, token=token, port=port)
+                print("Please point and click on the profile you want to crack!")
+                print("It will start in 5 seconds...\n")
 
                 time.sleep(5)
                 tv.crack()
             else:
-                print("provide the tv information first!")
+                print("Provide the TV information first!")
+
         elif ch == 3:
-            print("visit: https://github.com/coderMohammed1/PS-5-PIN-cracker")
+            print("Visit: https://github.com/coderMohammed1/PS-5-PIN-cracker")
+
+        elif ch == 4:
+            ip = str(scan())    
+            token = ""
+            port = 8002
             
+            if ip == "None":
+                    print("Unable to find supported tv pleas try option 1!")
+                    print()
+                    
+                    try:
+                        ch = int(input("Enter your option: "))
+                    except:
+                        print("Invalid option!")    
+                    continue
+                
+            # Try to read the token from the file
+            try:
+                with open("token.txt", "r") as token_file:
+                    token = token_file.read()
+            except:
+                print("Click allow when prompted!")
+
+            if len(token) == 0:
+                tv = SamsungTV(ip, token=None, port=port)
+            else:
+                tv = SamsungTV(ip, token=token, port=port)
+
+            tv.close()
+
+        elif ch == 5:
+            if tv != "": 
+                print("Please point and click on the profile you want to crack!")
+                start = int(input("Please specify where to start: "))
+                end = int(input("Please specify where to stop: "))
+
+                print("\nIt will start in 5 seconds...\n")
+                time.sleep(5)
+
+                tv = SamsungTV(ip, token=token, port=port)
+                tv.crack(start, end)
+                print("\n")
+            else:
+                print("Provide the TV information first!")
+
         else:
             print("Invalid option")
 
-        print(menue)
+        print(menu)
+
         try:
-            ch = int(input("Enter you option:"))
+            ch = int(input("Enter your option: "))
         except:
             print("Invalid option!")
+
+    # Close the connection after the program ends
+    try:
+        tv.close()
+    except:
+        print("Closing...\n")
 
 if __name__ == "__main__":
     try:
         main()
-    except:
-        print("error")
+    except Exception as e:
+        print(f"Error: {e}")

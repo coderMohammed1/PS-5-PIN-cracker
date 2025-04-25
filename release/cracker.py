@@ -91,8 +91,8 @@ def scan():
     """
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
-    deviceIP = s.getsockname()[0]
-    s.close()
+    deviceIP = s.getsockname()[0] # this makes connection to google (8.8.8.8) then extract the device ip
+    s.close() 
 
     # Create an IPv4 network object for scanning
     networkIP = ipaddress.IPv4Network(f"{deviceIP}/24", strict=False)

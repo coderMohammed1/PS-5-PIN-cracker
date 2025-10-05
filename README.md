@@ -18,23 +18,6 @@ This repository demonstrates a method to programmatically control a PlayStation 
 
 ---
 
-#### Key Steps:
-1. Scanned the TV's network ports using Nmap, identifying port `8002` as a potential entry point.
-2. Used Python to establish a WebSocket connection and authenticate using a generated token.
-3. Implemented a script to simulate PIN entry sequences, leveraging the TV's control over the PS5.
-Note: those steps might differ from TV to other. Some TVs does not require you to touch them to do the whole exploit.
----
-
-## Nmap Scan Results
-The following is an excerpt from the Nmap scan results for the Samsung Smart TV:
-
-```bash
-Nmap scan report for 192.168.1.119
-Host is up (0.0026s latency).
-PORT      STATE  SERVICE
-8002/tcp  open   ssl/teradataordbms?
-```
-
 ## Prerequisites
 
 - A TV with HDMI-CEC support.
@@ -50,7 +33,7 @@ PORT      STATE  SERVICE
 Install dependencies using `pip install [requirement name]`.
 
 
-## Implementation Steps
+## Usage
 
 1. **Prepare the Setup**:
     
@@ -63,7 +46,6 @@ Install dependencies using `pip install [requirement name]`.
     - Use the provided Python script (token.py) to retrieve an authentication token from the TV.
 
 3. **PIN bypass**
-
 
 	go to the account you want to brute force click on it and then run pin.py
 

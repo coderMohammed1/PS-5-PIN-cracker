@@ -14,22 +14,9 @@ a more user friendly version has been created. you can find the instructions in 
 # Technical description:
 
 ## Summary
-This report demonstrates a method to programmatically control a PlayStation 5 (PS5) using Python, leveraging the HDMI-CEC capabilities of Samsung Smart TVs. It further shows how this method can be utilized to brute force PINs of local PS5 accounts without encountering rate limits.
+This repository demonstrates a method to programmatically control a PlayStation 5 (PS5) using Python, leveraging the HDMI-CEC capabilities of Samsung Smart TVs. It further shows how this method can be utilized to brute force PINs of local PS5 accounts without encountering rate limits.
 
 ---
-
-## Background
-The idea for this exploration began with an interest in remotely controlling the PS5 programmatically. Initial attempts to use PS5 controller protocols were met with limitations, as they were not designed for this use case. The breakthrough came from observing the use of a Samsung Smart TV remote to control the PS5 via HDMI-CEC, which allowed us to explore control using Samsung's APIs.
-
----
-
-## Discovery Process
-
-### Initial Attempt
-An attempt was made to utilize existing PlayStation controller libraries and remote protocols, but these methods proved unsuitable due to their restricted functionality in bypassing PIN-protected accounts.
-
-### Second Attempt
-The discovery that a Samsung Smart TV remote could control the PS5 inspired the idea of programmatically controlling the TV to indirectly manage the PS5. Research into Samsung's Smart TV APIs revealed existing libraries and user contributions, which were refined and adapted for this purpose.
 
 #### Key Steps:
 1. Scanned the TV's network ports using Nmap, identifying port `8002` as a potential entry point.
@@ -80,11 +67,8 @@ Install dependencies using `pip install [requirement name]`.
 
 	go to the account you want to brute force click on it and then run pin.py
 
-bservations
 
-The script successfully brute-forced a PS5 account PIN without encountering rate limits or other protective mechanisms. This exposes a critical vulnerability in PS5's account security when paired with HDMI-CEC-enabled TVs.
-
-# Impacts
+# use cases
 
 1- PIN bypass
 
@@ -94,8 +78,5 @@ The script successfully brute-forced a PS5 account PIN without encountering rate
 
 4- this way may impact other devices as well, as this provide a general way of automating device control.
 
-## Conclusion
-
-This report outlines a novel method for leveraging Samsung Smart TV APIs and HDMI-CEC to programmatically control a PS5 using Python.
 
 **Note**: This demonstration is intended for ethical and research purposes only.
